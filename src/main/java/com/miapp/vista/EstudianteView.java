@@ -1,165 +1,161 @@
 package com.miapp.vista;
 
 import com.miapp.controlador.EstudianteController;
-
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
+
 import java.util.List;
 
-/**
- * Vista: JFrame principal del módulo Estudiante.
- * Contiene un campo de búsqueda y una tabla de resultados.
- *
- * IMPORTANTE (MVC): esta clase NO conoce ni importa el Modelo (Estudiante).
- * Solo trabaja con tipos genéricos (Object[], List<Object[]>) que el
- * Controlador le entrega ya preparados. Así la Vista queda desacoplada
- * del Modelo y toda la comunicación pasa por el Controlador.
- */
 public class EstudianteView extends JFrame {
+    // Componentes de Búsqueda y Mostrar Todos (Enunciado 3)
+    private JTextField txtBuscarNombre;
+    private JButton btnBuscar;
+    private JButton btnMostrarTodos;
 
-    // ── Componentes UI ────────────────────────────────────────────────────────
-    private JTextField             txtNombre;
-    private JButton                btnBuscar;
-    private JTable                 tblResultados;
-    private DefaultTableModel      modeloTabla;
-    private JLabel                 lblEstado;
+    // Componentes de Agregar Estudiante (Enunciado 1)
+    private JTextField txtAddNombre;
+    private JTextField txtAddCarrera;
+    private JTextField txtAddPromedio;
+    private JButton btnAgregar;
 
-    // ── Controlador ───────────────────────────────────────────────────────────
+    // Componentes de Ordenamiento (Enunciado 2)
+    private JComboBox<String> cbCriterioOrden;
+    private JButton btnOrdenar;
+
+    // Componentes de la Tabla
+    private JTable tablaResultados;
+    private DefaultTableModel modeloTabla;
+    private JLabel lblEstado;
     private EstudianteController controlador;
 
-    // ── Constructor ───────────────────────────────────────────────────────────
-
     public EstudianteView() {
-        initComponentes();
-        initEventos();
-    }
-
-    // ── Inicialización de componentes ─────────────────────────────────────────
-
-    private void initComponentes() {
         setTitle("Búsqueda de Estudiantes — MVC NetBeans");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(700, 450);
+        setSize(900, 650);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
-        // Panel superior — barra de búsqueda
-        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        // Panel Superior Contenedor
+        JPanel panelSuperior = new JPanel();
+        panelSuperior.setLayout(new BoxLayout(panelSuperior, BoxLayout.Y_AXIS));
+
+        // 1. Subpanel Buscar estudiante + Mostrar todos (Enunciado 3)
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT));
         panelBusqueda.setBorder(BorderFactory.createTitledBorder("Buscar estudiante"));
-
-        JLabel lblNombre = new JLabel("Nombre:");
-        txtNombre = new JTextField(25);
+        
+        panelBusqueda.add(new JLabel("Nombre:"));
+        txtBuscarNombre = new JTextField(15);
+        panelBusqueda.add(txtBuscarNombre);
+        
         btnBuscar = new JButton("Buscar");
-        btnBuscar.setBackground(new Color(59, 139, 212));
+        btnBuscar.setBackground(new Color(33, 150, 243));
         btnBuscar.setForeground(Color.WHITE);
-        btnBuscar.setFocusPainted(false);
-
-        panelBusqueda.add(lblNombre);
-        panelBusqueda.add(txtNombre);
         panelBusqueda.add(btnBuscar);
 
-        // Panel central — tabla de resultados
+        btnMostrarTodos = new JButton("Mostrar todos");
+        panelBusqueda.add(btnMostrarTodos);
+
+        // 2. Subpanel Agregar estudiante (Enunciado 1)
+        JPanel panelAgregar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelAgregar.setBorder(BorderFactory.createTitledBorder("Agregar estudiante"));
+
+        panelAgregar.add(new JLabel("Nombre:"));
+        txtAddNombre = new JTextField(12);
+        panelAgregar.add(txtAddNombre);
+
+        panelAgregar.add(new JLabel("Carrera:"));
+        txtAddCarrera = new JTextField(12);
+        panelAgregar.add(txtAddCarrera);
+
+        panelAgregar.add(new JLabel("Promedio:"));
+        txtAddPromedio = new JTextField(5);
+        panelAgregar.add(txtAddPromedio);
+
+        btnAgregar = new JButton("Agregar");
+        btnAgregar.setBackground(new Color(76, 175, 80));
+        btnAgregar.setForeground(Color.WHITE);
+        panelAgregar.add(btnAgregar);
+
+        // 3. Subpanel Ordenar resultados (Enunciado 2)
+        JPanel panelOrdenar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelOrdenar.setBorder(BorderFactory.createTitledBorder("Ordenar resultados"));
+
+        panelOrdenar.add(new JLabel("Criterio:"));
+        cbCriterioOrden = new JComboBox<>(new String[]{"Nombre", "Promedio"});
+        panelOrdenar.add(cbCriterioOrden);
+
+        btnOrdenar = new JButton("Ordenar");
+        panelOrdenar.add(btnOrdenar);
+
+        // Agregar los tres subpaneles al panel superior
+        panelSuperior.add(panelBusqueda);
+        panelSuperior.add(panelAgregar);
+        panelSuperior.add(panelOrdenar);
+
+        add(panelSuperior, BorderLayout.NORTH);
+
+        // Panel Central: Tabla de Resultados
         String[] columnas = {"ID", "Nombre", "Carrera", "Promedio"};
-        modeloTabla = new DefaultTableModel(columnas, 0) {
-            @Override
-            public boolean isCellEditable(int row, int col) { return false; }
-        };
-        tblResultados = new JTable(modeloTabla);
-        tblResultados.setRowHeight(24);
-        tblResultados.getTableHeader().setReorderingAllowed(false);
-        tblResultados.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        modeloTabla = new DefaultTableModel(columnas, 0);
+        tablaResultados = new JTable(modeloTabla);
+        add(new JScrollPane(tablaResultados), BorderLayout.CENTER);
 
-        JScrollPane scroll = new JScrollPane(tblResultados);
-        scroll.setBorder(BorderFactory.createTitledBorder("Resultados"));
+        // Panel Inferior: Barra de Estado
+        lblEstado = new JLabel("Listo.");
+        add(lblEstado, BorderLayout.SOUTH);
 
-        // Panel inferior — estado
-        lblEstado = new JLabel("Ingrese un nombre y presione Buscar.");
-        lblEstado.setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
-        lblEstado.setForeground(Color.GRAY);
-
-        add(panelBusqueda, BorderLayout.NORTH);
-        add(scroll,        BorderLayout.CENTER);
-        add(lblEstado,     BorderLayout.SOUTH);
-    }
-
-    // ── Eventos ───────────────────────────────────────────────────────────────
-
-    private void initEventos() {
-        btnBuscar.addActionListener((ActionEvent e) -> {
+        // Asignación de Eventos
+        btnBuscar.addActionListener(e -> {
             if (controlador != null) {
-                controlador.buscarEstudiante(txtNombre.getText().trim());
+                controlador.buscarPorNombre(txtBuscarNombre.getText());
             }
         });
 
-        // También buscar al presionar Enter en el campo de texto
-        txtNombre.addActionListener((ActionEvent e) -> btnBuscar.doClick());
+        btnMostrarTodos.addActionListener(e -> {
+            if (controlador != null) {
+                controlador.mostrarTodos();
+            }
+        });
+
+        btnAgregar.addActionListener(e -> {
+            if (controlador != null) {
+                controlador.agregarEstudiante(
+                    txtAddNombre.getText(),
+                    txtAddCarrera.getText(),
+                    txtAddPromedio.getText()
+                );
+                txtAddNombre.setText("");
+                txtAddCarrera.setText("");
+                txtAddPromedio.setText("");
+            }
+        });
+
+        btnOrdenar.addActionListener(e -> {
+            if (controlador != null) {
+                String criterio = (String) cbCriterioOrden.getSelectedItem();
+                controlador.ordenarPor(criterio);
+            }
+        });
     }
-
-    // ── Métodos públicos que llama el Controlador ─────────────────────────────
-    // ninguno de estos métodos recibe un Estudiante: reciben
-    // Object[] / List<Object[]> ya armados, que es lo único que la Vista
-    // necesita saber para pintar la tabla.
-
-    /**
-     * Muestra una única fila en la tabla.
-     * @param fila arreglo con {id, nombre, carrera, promedioFormateado}
-     */
-    public void mostrarEstudiante(Object[] fila) {
-        limpiarTabla();
-        agregarFila(fila);
-        setEstado("Se encontró 1 estudiante.");
-    }
-
-    /**
-     * Muestra varias filas en la tabla.
-     * @param filas lista de arreglos {id, nombre, carrera, promedioFormateado}
-     */
-    public void mostrarEstudiantes(List<Object[]> filas) {
-        limpiarTabla();
-        if (filas == null || filas.isEmpty()) {
-            setEstado("No se encontraron estudiantes con ese criterio.");
-            return;
-        }
-        for (Object[] fila : filas) {
-            agregarFila(fila);
-        }
-        setEstado("Se encontraron " + filas.size() + " estudiante(s).");
-    }
-
-    /**
-     * Muestra un mensaje de error en la barra de estado.
-     */
-    public void mostrarError(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
-        setEstado("Error: " + mensaje);
-    }
-
-    /**
-     * Devuelve el texto ingresado en el campo de nombre.
-     */
-    public String getNombreBuscado() {
-        return txtNombre.getText().trim();
-    }
-
-    // ── Setter del controlador ────────────────────────────────────────────────
 
     public void setControlador(EstudianteController controlador) {
         this.controlador = controlador;
     }
 
-    // ── Helpers privados ──────────────────────────────────────────────────────
-
-    private void agregarFila(Object[] fila) {
-        modeloTabla.addRow(fila);
-    }
-
-    private void limpiarTabla() {
+    public void mostrarEstudiantes(List<Object[]> estudiantes) {
         modeloTabla.setRowCount(0);
+        for (Object[] fila : estudiantes) {
+            modeloTabla.addRow(fila);
+        }
+        lblEstado.setText("Se encontraron " + estudiantes.size() + " estudiante(s).");
     }
 
-    private void setEstado(String texto) {
-        lblEstado.setText(texto);
+    public void mostrarError(String mensaje) {
+        JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public void mostrarMensaje(String mensaje) {
+        JOptionPane.showMessageDialog(this, mensaje, "Éxito", JOptionPane.INFORMATION_MESSAGE);
     }
 }
